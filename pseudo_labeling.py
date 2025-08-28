@@ -39,7 +39,7 @@ def create_pseudo_labels(text):
 
 # Example Usage
 df = pd.read_csv('data/cleanedData/reviews_cleaned.csv')
-df['pseudo_label'] = df['review_text'].apply(create_pseudo_labels)
+df['pseudo_label'] = df['text'].apply(create_pseudo_labels)
 print("Label distribution:")
 print(df['pseudo_label'].value_counts())
 print(f"Valid reviews: {df['pseudo_label'].mean():.2%}")
