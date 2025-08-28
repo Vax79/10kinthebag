@@ -4,6 +4,8 @@ import os
 import time
 import sys
 
+from sentence_transformers import SentenceTransformer, util
+
 # --- Rule Definitions ---
 ad_pattern = re.compile(
     r"(https?://[^\s]+"
@@ -23,7 +25,6 @@ ad_pattern = re.compile(
     r")",
     re.IGNORECASE
 )
-
 
 irrelevant_keywords = {
     'technology': [
@@ -87,6 +88,13 @@ def detect_contradiction(text: str, value: int) -> bool:
     
         return (rating <= 3 & has_positive) and (rating > 3 & has_negative)
 
+def detect_short_review(text: str, min_words: int = 5) -> bool:
+    
+    return len(text.split()) < min_words
+    
+    except Exception:
+        return False 
+
 def detect_spam_content(text: str) -> bool:
     """Enhanced spam detection focusing on keyboard patterns and gibberish"""
     text_lower = text.lower()
@@ -108,14 +116,26 @@ def detect_spam_content(text: str) -> bool:
     
     return False
 
-def apply_policy_rules(df: pd.DataFrame) -> pd.DataFrame:
+# Semantic Relevancy (not sure if uw to keep this u need download )
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2') 
 
+def detect_irrelevant_semantic(text: str, business_name: str) -> bool:
+    emb_review = embedding_model.encode(text, convert_to_tensor=True)
+    emb_location = embedding_model.encode(business_name, convert_to_tensor=True)
+    similarity = util.cos_sim(emb_review, emb_location).item()
+    return similarity < 0.5  # threshold
+
+def apply_policy_rules(df: pd.DataFrame, business_name: str) -> pd.DataFrame:
     df['ad_flag'] = df['text'].apply(detect_advertisement)
-    df['irrelevant_flag'] = df['text'].apply(detect_irrelevant)
+    df['irrelevant_flag_rule'] = df['text'].apply(detect_irrelevant)
     df['rant_flag'] = df['text'].apply(detect_rant_without_visit)
-    df['contradiction_flag'] = df.apply(lambda row: detect_contradiction(row['text'], row['rating']), axis=1)
-    df['spam_flag'] = df['text'].apply(detect_spam_content)
+    df['irrelevant_flag_semantic'] = df['text'].apply(lambda x: detect_irrelevant_semantic(x, business_name))
+    df['short_review_flag'] = df['text'].apply(detect_short_review)
 
+    # Combine all flags into a single violation flag
+    df['policy_violation'] = df[['ad_flag','irrelevant_flag_rule','rant_flag',
+                                 'irrelevant_flag_semantic','short_review_flag']].any(axis=1)
+    
     return df
 
 #Removes rows that violates any policy rules and returns the filtered dataframe
