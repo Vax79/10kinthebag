@@ -1,33 +1,28 @@
 import re
 import pandas as pd
 import os
+import time
 import sys
-import time 
-from typing import Dict, List, Tuple, Set
-from collections import Counter
-import logging
-import string
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # --- Rule Definitions ---
-ad_patterns = [
-    r"https?://[^\s]+",  
-    r"www\.[^\s]+",      
-    r"\b(visit|check out|go to)\s+[a-zA-Z0-9.-]+\.(com|net|org|co\.uk)\b",  
-    r"\b(discount|promo|coupon|deal|offer|sale)\b",  
-    r"\b(call|text|phone)\s*[:\-]?\s*\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b",  
-    r"\b(email|contact)\s*[:\-]?\s*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b", 
-    r"\$\d+\s*(off|discount)", 
-    r"\b\d+%\s*(off|discount)\b",
-    r"\b(free|buy|order|purchase|get yours|limited time)\b.*\b(now|today|call|visit)\b",
-    r"\b(hire|job|employment|work opportunity)\b",
-    r"dm me|message me|contact me",
-    r"\b(affiliate|sponsored|partnership|referral)\b",
-    r"\b(subscribe|follow me|like and share)\b",
-    r"\b(my business|my company|my store|my website)\b"
-]
+ad_pattern = re.compile(
+    r"(https?://[^\s]+"
+    r"|www\.[^\s]+"
+    r"|\b(?:visit|check out|go to)\s+[a-zA-Z0-9.-]+\.(?:com|net|org|co\.uk)\b"
+    r"|\b(?:discount|promo|coupon|deal|offer|sale)\b"
+    r"|\b(?:call|text|phone)\s*[:\-]?\s*\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b"
+    r"|\b(?:email|contact)\s*[:\-]?\s*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b"
+    r"|\$\d+\s*(?:off|discount)"
+    r"|\b\d+%\s*(?:off|discount)\b"
+    r"|\b(?:free|buy|order|purchase|get yours|limited time)\b.*\b(?:now|today|call|visit)\b"
+    r"|\b(?:hire|job|employment|work opportunity)\b"
+    r"|(?:dm me|message me|contact me)"
+    r"|\b(?:affiliate|sponsored|partnership|referral)\b"
+    r"|\b(?:subscribe|follow me|like and share)\b"
+    r"|\b(?:my business|my company|my store|my website)\b"
+    r")",
+    re.IGNORECASE
+)
 
 
 irrelevant_keywords = {
@@ -66,46 +61,36 @@ rant_phrases = [
     "supposedly", "apparently", "rumor has it"
 ]
 
-fake_review_indicators = [
-    r"^.{1,20}$",  # Very short reviews (less than 20 characters, likely generic)
-]
-
-copy_paste_indicators = [
-    r"copy.*paste|paste.*copy",
-    r"ctrl\s*[+]\s*[cv]|cmd\s*[+]\s*[cv]",  # Copy paste shortcuts
-    r"(\b\w+\b.*){5,}\1",  # Repeated spam phrases/sentences 
-]
-
-profanity_list = [ # is this allowed idk delete if uw
-    "wtf", "bs", "bullshit", "fuck", "shit", "ccb", "idiot"
-]
-
-
 # --- Detection Functions ---
 
 def detect_advertisement(text: str) -> bool:
+<<<<<<< HEAD
     """Detect if review contains ads or promotional content"""
     return bool(re.search(ad_patterns, text.lower())) 
+=======
+
+   return bool(ad_pattern.search(text))
+>>>>>>> e6d249768dee36ad0ead7655040705f254ae0aac
 
 def detect_irrelevant(text: str) -> bool:
-    """Detect if review contains unrelated keywords"""
-    text_lower = text.lower()
-    
-    # count irrelevant keywords
-    irrelevant_count = sum(1 for word in all_irrelevant_keywords if word in text_lower)
-    total_words = len(text_lower.split())
-    
-    # flag if multiple irrelevant keywords within a sentence
-    if total_words > 0:
-        irrelevant_ratio = irrelevant_count / total_words
-        return irrelevant_ratio > 0.2 
-    
-    return irrelevant_count > 0
-    return any(word in text.lower() for word in irrelevant_keywords)
+
+    return any(word in text.lower() for word in all_irrelevant_keywords)
 
 def detect_rant_without_visit(text: str) -> bool:
-    """Detect if review implies ranting without visiting"""
+
     return any(phrase in text.lower() for phrase in rant_phrases)
+
+def detect_contradiction(text: str, value: int) -> bool:
+    
+        positive_words = ["great", "excellent", "amazing", "fantastic", "good"]
+        negative_words = ["bad", "terrible", "awful", "horrible", "poor"]
+    
+        has_positive = any(word in text.lower() for word in positive_words)
+        has_negative = any(word in text.lower() for word in negative_words)
+
+        rating = value
+    
+        return (rating <= 3 & has_positive) and (rating > 3 & has_negative)
 
 def detect_spam_content(text: str) -> bool:
     """Enhanced spam detection focusing on keyboard patterns and gibberish"""
@@ -128,6 +113,7 @@ def detect_spam_content(text: str) -> bool:
     
     return False
 
+<<<<<<< HEAD
 def detect_spam_repetition(text: str) -> bool:
     """Detect excessive word repetition"""
     
@@ -153,26 +139,28 @@ def detect_spam_repetition(text: str) -> bool:
     
     return False
 
+=======
+>>>>>>> e6d249768dee36ad0ead7655040705f254ae0aac
 def apply_policy_rules(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Apply all rules to a dataframe with a 'review_text' column.
-    Returns dataframe with new columns: ad_flag, irrelevant_flag, rant_flag
-    """
+
     df['ad_flag'] = df['text'].apply(detect_advertisement)
     df['irrelevant_flag'] = df['text'].apply(detect_irrelevant)
     df['rant_flag'] = df['text'].apply(detect_rant_without_visit)
+    df['contradiction_flag'] = df.apply(lambda row: detect_contradiction(row['text'], row['rating']), axis=1)
+    df['spam_flag'] = df['text'].apply(detect_spam_content)
+
     return df
 
 #Removes rows that violates any policy rules and returns the filtered dataframe
 #TEMP!! ALSO PRODUCES A DATAFRAME WITH THE FLAG COLUMNS FOR POLICY TESTING
 def filter_dataset(df: pd.DataFrame) -> pd.DataFrame:
-    df_new = df[~(df['ad_flag'] | df['irrelevant_flag'] | df['rant_flag'])].reset_index(drop=True)
+    df_new = df[~(df['ad_flag'] | df['irrelevant_flag'] | df['rant_flag'] | df['contradiction_flag'] | df['spam_flag'])].reset_index(drop=True)
 
     os.makedirs("data/filteredDataWithFlags", exist_ok=True)
     output_file = os.path.join("data/filteredDataWithFlags", f"cleaned_reviews_{int(time.time())}.csv")
     df.to_csv(output_file, index=False)
 
-    return df_new.drop(['ad_flag', 'irrelevant_flag', 'rant_flag'], axis=1)
+    return df_new.drop(['ad_flag', 'irrelevant_flag', 'rant_flag', 'contradiction_flag', 'spam_flag'], axis=1)
 
 # --- Main method ---
 
@@ -199,3 +187,4 @@ if __name__ == "__main__":
         print("Usage: python policy_module.py <input_csv>")
     else:
         main(sys.argv[1])
+
