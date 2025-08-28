@@ -5,6 +5,7 @@ pyvenv.cfg
 
 #ignores python library files
 lib/
+__pycache__
 
 #ignores python bin
 bin/

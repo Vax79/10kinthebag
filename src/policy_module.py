@@ -64,13 +64,8 @@ rant_phrases = [
 # --- Detection Functions ---
 
 def detect_advertisement(text: str) -> bool:
-<<<<<<< HEAD
-    """Detect if review contains ads or promotional content"""
-    return bool(re.search(ad_patterns, text.lower())) 
-=======
 
    return bool(ad_pattern.search(text))
->>>>>>> e6d249768dee36ad0ead7655040705f254ae0aac
 
 def detect_irrelevant(text: str) -> bool:
 
@@ -113,34 +108,6 @@ def detect_spam_content(text: str) -> bool:
     
     return False
 
-<<<<<<< HEAD
-def detect_spam_repetition(text: str) -> bool:
-    """Detect excessive word repetition"""
-    
-    # check for word repetitions
-    word_counts = Counter(word for word in words if len(word) > 3)
-    if word_counts:
-        max_count = max(word_counts.values())
-        if max_count > len(words) * 0.4:  
-            return True
-    
-    # check for copy paste indicators
-    text_lower = text.lower()
-    for pattern in copy_paste_indicators:
-        if re.search(pattern, text_lower):
-            return True
-    
-    # check for repeated sentences/phrases
-    sentences = re.split(r'[.!?]+', text)
-    if len(sentences) > 2:
-        sentence_counts = Counter(s.strip().lower() for s in sentences if s.strip())
-        if sentence_counts and max(sentence_counts.values()) > 1:
-            return True
-    
-    return False
-
-=======
->>>>>>> e6d249768dee36ad0ead7655040705f254ae0aac
 def apply_policy_rules(df: pd.DataFrame) -> pd.DataFrame:
 
     df['ad_flag'] = df['text'].apply(detect_advertisement)
