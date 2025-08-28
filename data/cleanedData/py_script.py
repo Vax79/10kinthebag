@@ -4,7 +4,7 @@ from ftfy import fix_text
 from unidecode import unidecode
 
 # --- Load CSV ---
-df = pd.read_csv("reviews.csv", encoding="utf-8")
+df = pd.read_csv("data/cleanedData/reviews.csv", encoding="utf-8")
 
 print("== Data types + non-null counts ==")
 print(df.info())  
