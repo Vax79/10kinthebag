@@ -1,0 +1,10 @@
+#Ignores all data files
+data/
+
+pyvenv.cfg
+
+#ignores python library files
+lib/
+
+#ignores python bin
+bin/
