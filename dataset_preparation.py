@@ -10,7 +10,7 @@ machine learning pipelines.
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 
-def prepare_dataset(df):
+def prepare_dataset(df): 
     """
     Splits a DataFrame into train, validation, and test sets and converts them to HuggingFace Datasets.
 
@@ -55,7 +55,7 @@ def prepare_dataset(df):
     
     return train_dataset, val_dataset, test_dataset
 
-train_ds, val_ds, test_ds = prepare_dataset(df)
+train_ds, val_ds, test_ds = prepare_dataset(df) # TODO: label clean data as df
 
 print(f"Train size: {len(train_ds)}")
 print(f"Validation size: {len(val_ds)}")
