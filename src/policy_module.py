@@ -85,7 +85,7 @@ profanity_list = [ # is this allowed idk delete if uw
 
 def detect_advertisement(text: str) -> bool:
     """Detect if review contains ads or promotional content"""
-    return bool(re.search(ad_pattern, text.lower())) 
+    return bool(re.search(ad_patterns, text.lower())) 
 
 def detect_irrelevant(text: str) -> bool:
     """Detect if review contains unrelated keywords"""
@@ -132,7 +132,7 @@ def detect_spam_repetition(text: str) -> bool:
     """Detect excessive word repetition"""
     
     # check for word repetitions
-     word_counts = Counter(word for word in words if len(word) > 3)
+    word_counts = Counter(word for word in words if len(word) > 3)
     if word_counts:
         max_count = max(word_counts.values())
         if max_count > len(words) * 0.4:  
