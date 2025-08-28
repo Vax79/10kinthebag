@@ -67,6 +67,21 @@ df["author_name"] = df["author_name"].str.strip().str.title()
 df["text"] = df["text"].str.replace(r"\s+", " ", regex=True)  # collapse spaces
 df["text"] = df["text"].str.strip(" .;:!?")  # trim punctuation
 
+# --- Capitalize sentences after full stops ---
+def capitalize_sentences_and_i(text):
+    if pd.isna(text):
+        return text
+    # Capitalize first letter after a full stop
+    text = re.sub(r'(^\s*[a-z])', lambda m: m.group(1).upper(), text)  # beginning of text
+    text = re.sub(r'([.!?]\s+)([a-z])', lambda m: m.group(1) + m.group(2).upper(), text)  # after punctuation
+    
+    # Capitalize standalone 'i'
+    text = re.sub(r'\bi\b', "I", text)
+    return text
+
+# Apply to your text column
+df["text"] = df["text"].apply(capitalize_sentences_and_i)
+
 # --- Normalize categories ---
 valid_categories = {"taste", "menu", "indoor_atmosphere", "outdoor_atmosphere"}
 df["rating_category"] = df["rating_category"].str.strip().str.lower()
