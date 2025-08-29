@@ -8,3 +8,4 @@ matplotlib
 seaborn
 ftfy
 unidecode
+regex
